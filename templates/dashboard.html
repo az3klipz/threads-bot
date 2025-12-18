@@ -1,0 +1,807 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threads Companion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+            border-bottom: 3px solid #0d6efd;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(25, 135, 84, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+            }
+        }
+
+        .btn-pulse {
+            animation: pulse-green 2s infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">🤖 Threads Companion</span>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard"
+                    type="button">Dashboard</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="config-tab" data-bs-toggle="tab" data-bs-target="#config"
+                    type="button">Configuration</button>
+            </li>
+            <li class="nav-item ms-auto align-self-center">
+                <span class="badge bg-secondary me-3" title="Current Version">v{{ version }}</span>
+                <button id="btnUpdate" class="btn btn-success btn-sm me-3" style="display: none;"
+                    onclick="triggerUpdate()">
+                    ⚡ Update Available
+                </button>
+                <span class="small text-muted">Made with ❤️ <a href="https://BrandonDuff.com" target="_blank"
+                        class="text-decoration-none text-muted">BrandonDuff.com</a></span>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+
+            <!-- DASHBOARD TAB -->
+            <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
+                <!-- Stats Row -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card stat-card">
+                            <h5>Likes Today</h5>
+                            <div class="stat-number">{{ stats.likes }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card stat-card">
+                            <h5>Follows Today</h5>
+                            <div class="stat-number">{{ stats.follows }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tools Section -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">🛠️ Tools</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Left Sidebar: Tool Selection -->
+                            <div class="col-md-4">
+                                <div class="list-group" id="list-tab" role="tablist">
+                                    <a class="list-group-item list-group-item-action active" id="list-autobot-list"
+                                        data-bs-toggle="list" href="#list-autobot" role="tab"
+                                        aria-controls="list-autobot"
+                                        onclick="localStorage.setItem('active_tool', 'autobot');">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">🤖 Auto Bot</h5>
+                                        </div>
+                                        <p class="mb-1 small">Automated engagement & discovery.</p>
+                                    </a>
+                                    <a class="list-group-item list-group-item-action" id="list-pod-list"
+                                        data-bs-toggle="list" href="#list-pod" role="tab" aria-controls="list-pod"
+                                        onclick="localStorage.setItem('active_tool', 'pod');">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">🚀 Pod Booster</h5>
+                                        </div>
+                                        <p class="mb-1 small">Boost engagement with community pods.</p>
+                                    </a>
+                                    <a class="list-group-item list-group-item-action" id="list-cs2-list"
+                                        data-bs-toggle="list" href="#list-cs2" role="tab" aria-controls="list-cs2">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">🔒 Coming Soon</h5>
+                                        </div>
+                                        <p class="mb-1 small">More automation tools.</p>
+                                    </a>
+
+                                </div>
+                            </div>
+
+                            <!-- Right Content Area: Tool Workspace -->
+                            <div class="col-md-8">
+                                <div class="tab-content" id="nav-tabContent">
+                                    <!-- Auto Bot Panel with Embedded Config -->
+                                    <div class="tab-pane fade show active" id="list-autobot" role="tabpanel"
+                                        aria-labelledby="list-autobot-list">
+                                        <!-- Controls -->
+                                        <div class="card shadow-sm border-0 mb-4">
+                                            <div class="card-body">
+                                                <h4>Auto Bot Controls</h4>
+                                                <div class="d-grid gap-3">
+                                                    <div class="btn-group">
+                                                        <button type="button"
+                                                            class="btn btn-success btn-lg dropdown-toggle w-100"
+                                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                                            🚀 START BOT
+                                                        </button>
+                                                        <ul class="dropdown-menu w-100 p-2">
+                                                            <li>
+                                                                <h6 class="dropdown-header">Select Mode</h6>
+                                                            </li>
+                                                            <li><button class="dropdown-item" type="button"
+                                                                    onclick="startBot('keyword')">🔎 Keyword
+                                                                    Mode</button>
+                                                            </li>
+                                                            <li><button class="dropdown-item" type="button"
+                                                                    onclick="startBot('competitor')">👥 Competitor
+                                                                    Mode</button>
+                                                            </li>
+                                                            <li><button class="dropdown-item" type="button"
+                                                                    onclick="startBot('manual')">🖐 Manual
+                                                                    Mode</button></li>
+                                                        </ul>
+
+                                                    </div>
+                                                    <button onclick="stopBot()" class="btn btn-outline-danger btn-lg">🛑
+                                                        STOP BOT</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Pod Booster Panel with Config -->
+                                    <div class="tab-pane fade" id="list-pod" role="tabpanel"
+                                        aria-labelledby="list-pod-list">
+                                        <div class="card shadow-sm border-0 mb-4">
+                                            <div class="card-body">
+                                                <h4>🚀 Pod Booster Controls</h4>
+                                                <div class="alert alert-info">Join engagement pods to boost your reach.
+                                                </div>
+                                                <button class="btn btn-success w-100" onclick="startBot('pod')">Start
+                                                    Pod Engine</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Other Panels -->
+                                <div class="tab-pane fade" id="list-cs1" role="tabpanel"
+                                    aria-labelledby="list-cs1-list">
+                                    <div class="text-center py-5">
+                                        <h3>🔒 Coming Soon</h3>
+                                        <p class="text-muted">Check back later for updates.</p>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="list-cs2" role="tabpanel"
+                                    aria-labelledby="list-cs2-list">
+                                    <div class="text-center py-5">
+                                        <h3>🔒 Coming Soon</h3>
+                                        <p class="text-muted">Check back later for updates.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONFIGURATION TAB (Dynamic Content) -->
+            <div class="tab-pane fade" id="config" role="tabpanel">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">⚙️ Configuration</h5>
+                        </div>
+                        <!-- Config Nav Pills -->
+                        <ul class="nav nav-pills card-header-pills" id="config-pills-tab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="pills-autobot-tab" data-bs-toggle="pill"
+                                    data-bs-target="#config-section-autobot" type="button" role="tab"
+                                    aria-controls="config-section-autobot" aria-selected="true"
+                                    onclick="updateConfigPills('autobot')">Auto Bot</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="pills-pod-tab" data-bs-toggle="pill"
+                                    data-bs-target="#config-section-pod" type="button" role="tab"
+                                    aria-controls="config-section-pod" aria-selected="false"
+                                    onclick="updateConfigPills('pod')">Pod Booster</button>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="config-pills-tabContent">
+                            <!-- Auto Bot Configuration Section -->
+                            <div id="config-section-autobot" class="tool-config-section">
+                                <h5 class="card-title text-muted mb-4">Auto Bot Settings</h5>
+                                <form id="configForm">
+                                    <!-- Toggles -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="enableLike" checked>
+                                                <label class="form-check-label" for="enableLike">Enable Likes</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="enableFollow"
+                                                    checked>
+                                                <label class="form-check-label" for="enableFollow">Enable
+                                                    Follows</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="enableComment"
+                                                    checked>
+                                                <label class="form-check-label" for="enableComment">Enable
+                                                    Comments</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Target Accounts</label>
+                                            <textarea class="form-control" id="targetAccounts" rows="3"
+                                                placeholder="@competitor1, @influencer2"></textarea>
+                                            <div class="form-text">For Competitor Mode.</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Search Keywords</label>
+                                            <textarea class="form-control" id="keywords" rows="3"
+                                                placeholder="tech, marketing"></textarea>
+                                            <div class="form-text">For Keyword Mode.</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Comment Templates</label>
+                                            <textarea class="form-control" id="commentTemplates" rows="3"
+                                                placeholder="{Great|Awesome} post! <username>"></textarea>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Negative Keywords</label>
+                                            <textarea class="form-control" id="negativeKeywords" rows="3"
+                                                placeholder="scam, nsfw"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label class="form-label">My Username (Safe Mode)</label>
+                                            <input type="text" class="form-control" id="myUsername"
+                                                placeholder="your_username">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">Max Likes</label>
+                                            <input type="number" class="form-control" id="maxLikes">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">Max Follows</label>
+                                            <input type="number" class="form-control" id="maxFollows">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">Follows/Key</label>
+                                            <input type="number" class="form-control" id="followsPerKeyword" value="5">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label class="form-label">Comment %</label>
+                                            <input type="number" class="form-control" id="commentProb" step="0.01"
+                                                min="0" max="1">
+                                        </div>
+                                    </div>
+
+                                    <hr>
+                                    <h6>📱 Post-Follow Engagement</h6>
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch pt-2">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="likePostsAfterFollow" checked>
+                                                <label class="form-check-label" for="likePostsAfterFollow">Like After
+                                                    Follow</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="number" class="form-control form-control-sm"
+                                                id="minPostsAfterFollow" placeholder="Min (2)">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="number" class="form-control form-control-sm"
+                                                id="maxPostsAfterFollow" placeholder="Max (5)">
+                                        </div>
+                                    </div>
+
+                                    <button type="button" onclick="saveConfig()" class="btn btn-primary w-100">💾 Save
+                                        Auto
+                                        Bot Settings</button>
+                                </form>
+                            </div>
+
+                            <!-- Pod Booster Configuration Section -->
+                            <div id="config-section-pod" class="tool-config-section" style="display:none;">
+                                <h5 class="card-title text-muted mb-4">Pod Booster Settings</h5>
+
+                                <!-- Toggles -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="podEnableLike" checked>
+                                            <label class="form-check-label" for="podEnableLike">Enable Likes on Pod
+                                                Posts</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="podEnableComment"
+                                                checked>
+                                            <label class="form-check-label" for="podEnableComment">Enable Comments on
+                                                Pod
+                                                Posts</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Pod Members List</label>
+                                        <textarea class="form-control" id="podMembers" rows="8" placeholder="@username1
+@username2
+@username3"></textarea>
+                                        <div class="form-text">Enter usernames one per line. The bot will visit each
+                                            one.</div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Comment Templates (Spintax)</label>
+                                            <textarea class="form-control" id="podCommentTemplates" rows="4"
+                                                placeholder="{Great|Awesome} post! <username>"></textarea>
+                                            <div class="form-text">Used if 'Enable Comments' is on. Randomly selected.
+                                            </div>
+                                        </div>
+
+                                        <label class="form-label">Management</label>
+                                        <div class="d-grid gap-2">
+                                            <input type="file" id="importPodFile" accept=".csv,.txt"
+                                                style="display: none;" onchange="importPodList(this)">
+                                            <button type="button" class="btn btn-outline-primary"
+                                                onclick="document.getElementById('importPodFile').click()">📂 Import
+                                                List</button>
+                                            <button type="button" class="btn btn-outline-secondary"
+                                                onclick="exportPodList()">💾
+                                                Export List</button>
+                                            <hr>
+                                            <div class="alert alert-light small mb-0">
+                                                <strong>Stats:</strong><br>
+                                                Total Members: <span id="podCount">0</span>
+                                            </div>
+                                            <!-- Cloud Sync Button -->
+                                            <button type="button" class="btn btn-primary w-100"
+                                                onclick="syncPodFromCloud()">☁️
+                                                Sync from Cloud</button>
+
+                                            <!-- Pod Selector -->
+                                            <div class="mt-3">
+                                                <label class="form-label small">Select Cloud Pod</label>
+                                                <select class="form-select form-select-sm" id="podSelector">
+                                                    <option value="default" selected>Loading...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-danger w-100" onclick="savePodConfig()">💾 Save Pod
+                                    Settings</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // --- BOT CONTROL FUNCTIONS ---
+        async function startBot(mode) {
+            let confirmMsg = '';
+            if (mode === 'competitor') confirmMsg = 'Start Competitor Target Mode?';
+            else if (mode === 'manual') confirmMsg = 'Start Manual Mode? (Bot will just sit there and let you browse)';
+            else if (mode === 'pod') confirmMsg = 'Start Pod Booster Mode?';
+            else confirmMsg = 'Start Keyword Search Mode?';
+
+            const res = await fetch('/api/start_bot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: mode })
+            });
+            const data = await res.json();
+            if (data.status === 'started') {
+                console.log("Bot started in " + mode);
+            }
+            else alert('Error: ' + data.message);
+        }
+
+        async function stopBot() {
+            if (confirm('Stop the bot? (It will finish the current action first)')) {
+                const res = await fetch('/api/stop_bot', { method: 'POST' });
+                const data = await res.json();
+                if (data.status === 'stopping') alert('Stop signal sent. Bot will exit shortly.');
+                else alert('Error: ' + data.message);
+            }
+        }
+
+        // --- CONFIGURATION LOGIC ---
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+
+                const joinList = (list) => Array.isArray(list) ? list.join(', ') : list;
+                const joinLines = (list) => Array.isArray(list) ? list.join('\n') : list;
+
+                // Auto Bot Configs
+                if (document.getElementById('targetAccounts'))
+                    document.getElementById('targetAccounts').value = joinList(config.competitors || []);
+                if (document.getElementById('keywords'))
+                    document.getElementById('keywords').value = joinList(config.keywords || []);
+                if (document.getElementById('negativeKeywords'))
+                    document.getElementById('negativeKeywords').value = joinList(config.negative_keywords || []);
+                if (document.getElementById('commentTemplates'))
+                    document.getElementById('commentTemplates').value = joinLines(config.comment_templates || []);
+                if (document.getElementById('myUsername'))
+                    document.getElementById('myUsername').value = config.my_username || '';
+
+                if (document.getElementById('maxLikes'))
+                    document.getElementById('maxLikes').value = config.max_likes || 50;
+                if (document.getElementById('maxFollows'))
+                    document.getElementById('maxFollows').value = config.max_follows || 20;
+                if (document.getElementById('followsPerKeyword'))
+                    document.getElementById('followsPerKeyword').value = config.follows_per_keyword || 5;
+                if (document.getElementById('commentProb'))
+                    document.getElementById('commentProb').value = config.comment_probability || 0.05;
+
+                // Checkboxes
+                if (document.getElementById('enableLike'))
+                    document.getElementById('enableLike').checked = config.enable_like !== false;
+                if (document.getElementById('enableFollow'))
+                    document.getElementById('enableFollow').checked = config.enable_follow !== false;
+                if (document.getElementById('enableComment'))
+                    document.getElementById('enableComment').checked = config.enable_comment !== false;
+
+                // Post-Follow Engagement
+                if (config.follow_engagement) {
+                    if (document.getElementById('likePostsAfterFollow'))
+                        document.getElementById('likePostsAfterFollow').checked = config.follow_engagement.like_posts_after_follow !== false;
+                    if (document.getElementById('minPostsAfterFollow'))
+                        document.getElementById('minPostsAfterFollow').value = config.follow_engagement.min_posts || 2;
+                    if (document.getElementById('maxPostsAfterFollow'))
+                        document.getElementById('maxPostsAfterFollow').value = config.follow_engagement.max_posts || 5;
+                }
+
+                // Pod Configs
+                if (document.getElementById('podMembers'))
+                    document.getElementById('podMembers').value = joinLines(config.pod_members || []);
+                if (document.getElementById('podCommentTemplates'))
+                    document.getElementById('podCommentTemplates').value = joinLines(config.pod_comment_templates || []);
+                if (document.getElementById('podEnableLike'))
+                    document.getElementById('podEnableLike').checked = config.pod_enable_like !== false;
+                if (document.getElementById('podEnableComment'))
+                    document.getElementById('podEnableComment').checked = config.pod_enable_comment !== false;
+
+                updatePodCount();
+            } catch (e) { console.error("Error loading config", e); }
+        }
+
+        async function saveConfig() {
+            const splitList = (str) => str.split(',').map(s => s.trim()).filter(s => s);
+            const splitLines = (str) => str.split('\n').map(s => s.trim()).filter(s => s);
+
+            const config = {
+                competitors: splitList(document.getElementById('targetAccounts').value),
+                keywords: splitList(document.getElementById('keywords').value),
+                negative_keywords: splitList(document.getElementById('negativeKeywords').value),
+                comment_templates: splitLines(document.getElementById('commentTemplates').value),
+                my_username: document.getElementById('myUsername').value.trim(),
+                max_likes: parseInt(document.getElementById('maxLikes').value),
+                max_follows: parseInt(document.getElementById('maxFollows').value),
+                follows_per_keyword: parseInt(document.getElementById('followsPerKeyword').value),
+                comment_probability: parseFloat(document.getElementById('commentProb').value),
+
+                enable_like: document.getElementById('enableLike').checked,
+                enable_follow: document.getElementById('enableFollow').checked,
+                enable_comment: document.getElementById('enableComment').checked,
+
+                follow_engagement: {
+                    like_posts_after_follow: document.getElementById('likePostsAfterFollow').checked,
+                    min_posts: parseInt(document.getElementById('minPostsAfterFollow').value),
+                    max_posts: parseInt(document.getElementById('maxPostsAfterFollow').value)
+                }
+            };
+
+            const res = await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+
+            if (res.ok) alert('Configuration Saved!');
+            else alert('Error saving configuration');
+        }
+
+        // --- POD FUNCTIONS ---
+        function savePodConfig() {
+            const members = document.getElementById('podMembers').value;
+            const commentTemplates = document.getElementById('podCommentTemplates').value;
+            const enableLike = document.getElementById('podEnableLike').checked;
+            const enableComment = document.getElementById('podEnableComment').checked;
+
+            const splitLines = (str) => str.split('\n').map(s => s.trim()).filter(s => s);
+
+            const config = {
+                pod_members: splitLines(members),
+                pod_comment_templates: splitLines(commentTemplates),
+                pod_enable_like: enableLike,
+                pod_enable_comment: enableComment
+            };
+
+            fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            }).then(res => {
+                if (res.ok) alert('Pod Settings Saved!');
+                else alert('Error saving settings');
+            });
+            updatePodCount();
+        }
+
+        function updatePodCount() {
+            const text = document.getElementById('podMembers').value;
+            if (!text) return;
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            document.getElementById('podCount').innerText = lines.length;
+        }
+
+        function importPodList(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('podMembers').value = e.target.result;
+                updatePodCount();
+                input.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function exportPodList() {
+            const members = document.getElementById('podMembers').value;
+            if (!members) { alert('List is empty!'); return; }
+            const blob = new Blob([members], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'pod_members.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        async function syncPodFromCloud() {
+            if (!confirm("Overwrite local list with Cloud Pod list?")) return;
+
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Syncing...";
+            btn.disabled = true;
+
+            try {
+                let selectedPodId = 'default';
+                const selector = document.getElementById('podSelector');
+                if (selector) selectedPodId = selector.value;
+
+                const res = await fetch('/api/pod/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pod_id: selectedPodId })
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    document.getElementById('podMembers').value = data.members.join('\n');
+                    updatePodCount();
+                    alert(`Sync Complete! Loaded ${data.count} members.`);
+                } else {
+                    alert('Sync Failed: ' + data.message);
+                }
+            } catch (e) {
+                alert('Error: ' + e);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function loadPodList() {
+            try {
+                const res = await fetch('/api/pod/list');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const select = document.getElementById('podSelector');
+                    if (!select) return;
+                    select.innerHTML = '';
+                    data.pods.forEach(pod => {
+                        const opt = document.createElement('option');
+                        opt.value = pod.id;
+                        opt.innerText = `${pod.display_name} `;
+                        opt.title = pod.description || "";
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.error("Failed to load pod list", e); }
+        }
+
+        function updateConfigPills(type) {
+            if (type === 'autobot') loadConfig();
+            else if (type === 'pod') {
+                loadConfig();
+                loadPodList();
+            }
+        }
+
+        // --- UNIFIED CONFIG RENDERER ---
+        function renderConfigState() {
+            const activeTool = localStorage.getItem('active_tool') || 'autobot';
+            console.log("Rendering config for tool:", activeTool);
+
+            const autoSection = document.getElementById('config-section-autobot');
+            const podSection = document.getElementById('config-section-pod');
+            const autoPill = document.getElementById('pills-autobot-tab');
+            const podPill = document.getElementById('pills-pod-tab');
+            const label = document.getElementById('active-config-label'); // Might be missing in this HTML version but safe to check
+
+            if (activeTool === 'pod') {
+                if (autoSection) autoSection.style.display = 'none';
+                if (podSection) podSection.style.display = 'block';
+
+                if (label) {
+                    label.innerText = 'Pod Booster';
+                    label.className = 'badge bg-success';
+                }
+
+                if (podPill) podPill.classList.add('active');
+                if (autoPill) autoPill.classList.remove('active');
+
+                updateConfigPills('pod');
+            } else {
+                if (autoSection) autoSection.style.display = 'block';
+                if (podSection) podSection.style.display = 'none';
+
+                if (label) {
+                    label.innerText = 'Auto Bot';
+                    label.className = 'badge bg-primary';
+                }
+
+                if (autoPill) autoPill.classList.add('active');
+                if (podPill) podPill.classList.remove('active');
+
+                updateConfigPills('autobot');
+            }
+        }
+
+        // Check for updates on load
+        fetch('/api/check_update')
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success' && data.data.available) {
+                    const btn = document.getElementById('btnUpdate');
+                    if (btn) {
+                        btn.style.display = 'inline-block';
+                        btn.classList.add('btn-pulse');
+                        btn.innerHTML = `⚡ Update Available(v${data.data.remote})`;
+                        btn.title = `Click to update to v${data.data.remote}`;
+                    }
+                }
+            })
+            .catch(e => console.error("Update check failed", e));
+
+        function triggerUpdate() {
+            if (!confirm("This will close the dashboard and run the updater. Proceed?")) return;
+            const btn = document.getElementById('btnUpdate');
+            if (btn) btn.innerHTML = "⏳ Launching...";
+            fetch('/api/perform_update', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.body.innerHTML = "<div style='color:white; text-align:center; padding-top:20%;'><h1>Updater Launched!</h1><p>The application is closing...</p></div>";
+                    } else {
+                        alert("Error: " + data.message);
+                        if (btn) btn.innerHTML = "⚡ Update Failed";
+                    }
+                })
+                .catch(e => alert("Request failed: " + e));
+        }
+
+        function quitApp() {
+            if (!confirm("Stop the server and close the app?")) return;
+            fetch('/api/shutdown', { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    document.body.innerHTML = "<div style='color:white; text-align:center; padding-top:20%;'><h1>Application Closed.</h1><p>You can close this tab now.</p></div>";
+                });
+        }
+
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', function () {
+            loadConfig();
+
+            // Listeners
+            const triggerTabList = [].slice.call(document.querySelectorAll('#list-tab a'))
+            triggerTabList.forEach(function (triggerEl) {
+                triggerEl.addEventListener('shown.bs.tab', function (event) {
+                    if (event.target.id === 'list-pod-list') {
+                        localStorage.setItem('active_tool', 'pod');
+                    } else if (event.target.id === 'list-autobot-list') {
+                        localStorage.setItem('active_tool', 'autobot');
+                    }
+                })
+            });
+
+            // Config tab listener if exists
+            const configTab = document.getElementById('config-tab');
+            if (configTab) {
+                configTab.addEventListener('shown.bs.tab', function (event) {
+                    renderConfigState();
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
